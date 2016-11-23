@@ -1,0 +1,31 @@
+box: mickro/nodejs-bower-grunt-sass
+build:
+    steps:
+        - script:
+          name: npm install
+          code: |
+            npm install
+            npm test
+        - script:
+          name: system information (node, npm)
+          code: |
+            echo "node version $(node --version) running"
+            echo "npm version $(npm --version) running"
+deploy:
+  box:
+    id: nginx:alpine
+    cmd: /bin/sh
+  steps:
+    - script:
+        name: mv static  files
+        code: |
+          rm -rf /usr/share/nginx/html/*
+          cp -Rp $WERCKER_SOURCE_DIR/* /usr/share/nginx/html
+    - internal/docker-push:
+        tag: spronq-avond
+        username: $DOCKER_HUB_USERNAME
+        password: $DOCKER_HUB_PASSWORD
+        repository: spronq/test
+        ports: 8080
+        cmd: nginx -g 'daemon off;'
+        registry: https://hub.docker.com
